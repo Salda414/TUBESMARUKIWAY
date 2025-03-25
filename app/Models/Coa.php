@@ -9,4 +9,5 @@ class Coa extends Model
 {
     /** @use HasFactory<\Database\Factories\CoaFactory> */
     use HasFactory;
+    protected $table = 'coa';
 }
