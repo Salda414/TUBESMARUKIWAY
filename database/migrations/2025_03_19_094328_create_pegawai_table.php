@@ -13,7 +13,16 @@ return new class extends Migration
     {
         Schema::create('pegawai', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('id_pegawai',4);
+            $table->string('nama',50);
+            $table->enum('jenis_kelamin',['Perempuan','Laki-laki']);
+            $table->string('alamat',100);
+            $table->string('email',50);
+            $table->string('no_telpon',15);
+            $table->string('posisi',50);
+            $table->integer('gaji');
+            $table->timestamps()
+            ;
         });
     }
 
