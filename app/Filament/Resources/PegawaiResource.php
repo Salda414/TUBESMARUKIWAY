@@ -27,12 +27,12 @@ class PegawaiResource extends Resource
                     ->disabled()
                     ->dehydrated()
                     ->default(fn () => str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT)),
-                    
+
                 Forms\Components\TextInput::make('nama')
                     ->label('Nama')
                     ->required()
                     ->maxLength(255),
-                
+
                 Forms\Components\Select::make('jenis_kelamin')
                     ->label('Jenis Kelamin')
                     ->options([
@@ -40,29 +40,29 @@ class PegawaiResource extends Resource
                         'Perempuan' => 'Perempuan'
                     ])
                     ->required(),
-                
+
                 Forms\Components\TextInput::make('alamat')
                     ->label('Alamat')
                     ->required()
                     ->maxLength(500),
-                
+
                 Forms\Components\TextInput::make('email')
                     ->label('Email')
                     ->email()
                     ->required()
-                    ->unique(Pegawai::class, 'email'),
-                
+                    ->unique(Pegawai::class, 'email', ignoreRecord: true), // Perbaikan agar tidak error saat edit
+
                 Forms\Components\TextInput::make('no_telpon')
                     ->label('No Telepon')
                     ->tel()
                     ->required()
                     ->maxLength(15),
-                
+
                 Forms\Components\TextInput::make('posisi')
                     ->label('Posisi')
                     ->required()
                     ->maxLength(255),
-                
+
                 Forms\Components\TextInput::make('gaji')
                     ->label('Gaji')
                     ->numeric()
@@ -76,24 +76,41 @@ class PegawaiResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id_pegawai')->label('ID Pegawai')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('nama')->label('Nama')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('jenis_kelamin')->label('Jenis Kelamin')->sortable(),
+                Tables\Columns\BadgeColumn::make('jenis_kelamin')
+                ->label('Jenis Kelamin')
+                ->sortable()
+                ->colors([
+                    'primary' => 'Laki-laki',
+                    'success' => 'Perempuan',
+                ]),
+            
                 Tables\Columns\TextColumn::make('alamat')->label('Alamat')->sortable(),
                 Tables\Columns\TextColumn::make('email')->label('Email')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('no_telpon')->label('No Telepon')->sortable(),
                 Tables\Columns\TextColumn::make('posisi')->label('Posisi')->sortable(),
-                Tables\Columns\TextColumn::make('gaji')->label('Gaji')->sortable(),
+                Tables\Columns\TextColumn::make('gaji')
+                    ->label('Gaji')
+                    ->sortable()
+                    ->money('IDR'), // Menambahkan format uang
             ])
             ->filters([
-                // Tambahkan filter jika diperlukan
+                Tables\Filters\SelectFilter::make('jenis_kelamin')
+                    ->label('Jenis Kelamin')
+                    ->options([
+                        'Laki-laki' => 'Laki-laki',
+                        'Perempuan' => 'Perempuan'
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(), // Tambahkan aksi Delete
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('nama', 'asc'); // Default urut berdasarkan nama
     }
 
     public static function getRelations(): array
