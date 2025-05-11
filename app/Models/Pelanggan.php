@@ -18,8 +18,8 @@ class Pelanggan extends Model
     protected $guarded = [];
 
     // app/Models/Pelanggan.php
-public function produk()
-{
+    public function produk()
+    {
     return $this->belongsTo(Produk::class, 'produk_id');
-}
+    }
 }
