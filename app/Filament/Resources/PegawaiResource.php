@@ -58,10 +58,16 @@ class PegawaiResource extends Resource
                     ->required()
                     ->maxLength(15),
 
-                Forms\Components\TextInput::make('posisi')
+                    Forms\Components\Select::make('posisi')
                     ->label('Posisi')
-                    ->required()
-                    ->maxLength(255),
+                    ->options([
+                        'kasir' => 'Kasir',
+                        'helper' => 'Helper',
+                        'cheff' => 'Cheff',
+                        'admin' => 'Admin',
+                    ])
+                    ->required(),
+                
 
                 Forms\Components\TextInput::make('gaji')
                     ->label('Gaji')
@@ -102,8 +108,9 @@ class PegawaiResource extends Resource
                     ]),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(), // Tambahkan aksi View
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(), // Tambahkan aksi Delete
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
