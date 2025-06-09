@@ -3,24 +3,46 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PembelianBahanBaku extends Model
 {
+    use HasFactory;
+
     protected $table = 'pembelian_bahan_baku';
 
+    protected static function booted(): void
+{
+    static::saving(function ($pembelian) {
+        $pembelian->total_harga = $pembelian->items->sum(function ($item) {
+            return $item->harga * $item->jumlah;
+        });
+    });
+}
+
+
     protected $fillable = [
-        'nama_produk', // diinput manual
         'vendor_id',
-        'jumlah',
-        'harga_satuan',
         'tanggal_pembelian',
+        'status',
+        'total_harga',
+        'catatan'
     ];
 
-    // Hapus relasi produk karena sudah tidak digunakan
-    // public function produk() { ... }
+    protected $casts = [
+        'tanggal_pembelian' => 'date',
+        'total_harga' => 'decimal:2',
+    ];
 
-    public function vendor()
+    public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(PembelianItem::class, 'pembelian_id');
     }
 }
