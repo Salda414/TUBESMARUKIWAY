@@ -6,7 +6,7 @@ use App\Filament\Resources\PembelianBahanBakuResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListPembelianBahanBakus extends ListRecords
+class ListPembelianBahanBaku extends ListRecords
 {
     protected static string $resource = PembelianBahanBakuResource::class;
 
@@ -17,4 +17,3 @@ class ListPembelianBahanBakus extends ListRecords
         ];
     }
 }
-
