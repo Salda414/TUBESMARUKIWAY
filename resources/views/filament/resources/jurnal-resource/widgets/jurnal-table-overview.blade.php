@@ -20,7 +20,7 @@
                 <br><br>
                
                 <div class="col-sm-12" style="background-color:white;" align="center">
-                    <b>Kedai Mirukiway</b><br>
+                    <b>Kedai Marukiway</b><br>
                     <b>Jurnal Umum</b><br>
                     <b>Periode {{ $periode ? \Carbon\Carbon::createFromFormat('Y-m', $periode)->translatedFormat('F Y') : now()->translatedFormat('F Y') }} </b><br>
                 </div>
