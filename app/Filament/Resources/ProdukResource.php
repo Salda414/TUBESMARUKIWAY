@@ -13,6 +13,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 
+use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Columns\ImageColumn;
+
 class ProdukResource extends Resource
 {
     protected static ?string $model = Produk::class;
@@ -36,6 +39,12 @@ class ProdukResource extends Resource
                 Textarea::make('deskripsi')
                     ->label('Deskripsi')
                     ->nullable(),
+                
+                FileUpload::make('gambar')
+                    ->label('Gambar')
+                    ->image()
+                    ->directory('images')
+                    ->required(),
 
                 TextInput::make('harga')
                     ->label('Harga')
@@ -66,6 +75,9 @@ class ProdukResource extends Resource
                 TextColumn::make('harga')->label('Harga')->money('IDR'),
                 TextColumn::make('stok')->label('Stok'),
                 TextColumn::make('status')->label('Status'),
+                ImageColumn::make('gambar')
+                    ->label('Gambar')
+                    ->size(50)            // ukuran thumbnail
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('kategori_id')

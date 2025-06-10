@@ -203,15 +203,17 @@
                             <div class="tab-pane fade show active" id="nav-all" role="tabpanel" aria-labelledby="nav-all-tab">
                                 <div class="product-grid row row-cols-1 row-cols-sm-2 row-cols-md                                -3 row-cols-lg-4 row-cols-xl-5">
                                     @foreach($produk as $p)
-                                    <div class="col mb-4">
-                                        <div class="product-item border rounded p-3">
-                                            <a href="#" class="btn-wishlist">
-                                                <svg width="24" height="24"><use xlink:href="#heart"></use></svg>
-                                            </a>
-                                            <figure>
-                                                <a href="{{ Storage::url($p->foto) }}" title="{{ $p->nama_produk }}">
-                                                    <img src="{{ Storage::url($p->foto) }}" class="tab-image img-fluid" alt="{{ $p->nama_produk }}">
-                                                </a>
+                  <div class="col mb-4">
+                    <div class="product-item bg-white p-3 rounded shadow-sm">
+                      <a href="#" class="btn-wishlist position-absolute end-0 top-0 m-3">
+                        <svg width="24" height="24">
+                          <use xlink:href="#heart"></use>
+                        </svg>
+                      </a>
+                      <figure class="text-center mb-4">
+                        <a href="{{ asset('storage/' . $p->gambar) }}" title="{{ $p->nama_produk }}">
+    <img src="{{ asset('storage/' . $p->gambar) }}" class="tab-image img-fluid" alt="{{ $p->nama_produk }}">
+</a>
                                             </figure>
                                             <h3 class="product-title">{{ $p->nama_produk }}</h3>
                                             <span class="qty badge bg-light text-dark">Stok: {{ $p->stok }} Unit</span>

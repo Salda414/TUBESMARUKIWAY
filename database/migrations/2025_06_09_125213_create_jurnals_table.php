@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pelanggan', function (Blueprint $table) {
-            $table->bigIncrements('id_pelanggan');  // id_pelanggan sebagai primary key
-            $table->string('nama_pelanggan');
-            $table->string('nomor_telepon')->unique();
-            $table->string('email')->unique();
-            $table->text('alamat');
+        Schema::create('jurnal', function (Blueprint $table) {
+            $table->id();
+            $table->date('tgl');
+            $table->string('no_referensi')->nullable();
+            $table->string('deskripsi')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pelanggan');
+        Schema::dropIfExists('jurnal');
     }
 };
