@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pegawai', function (Blueprint $table) {
-            $table->id();
-            $table->string('id_pegawai',4);
+        Schema::create('pegawais', function (Blueprint $table) {
+            $table->string('id_pegawai',4)->primary();
             $table->string('nama',50);
             $table->enum('jenis_kelamin',['Perempuan','Laki-laki']);
             $table->string('alamat',100);
@@ -21,7 +20,7 @@ return new class extends Migration
             $table->string('no_telpon',15);
             $table->string('posisi',50);
             $table->integer('gaji');
-            $table->timestamps()
+            $table->timestamps();
             ;
         });
     }
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pegawai');
+        Schema::dropIfExists('pegawais');
     }
 };

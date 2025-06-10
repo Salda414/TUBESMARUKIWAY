@@ -8,7 +8,14 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Contoh1Controller;
 use App\Http\Controllers\Contoh2Controller;
 use App\Http\Controllers\CoaController;
+use App\Http\Controllers\PengirimanEmailController;
 use Illuminate\Support\Facades\Auth;
+
+// Route khusus admin (dari GitHub)
+Route::prefix('admin')->group(function () {
+    Route::get('/penggajian/kirim/{id}', [PengirimanEmailController::class, 'kirim'])
+        ->name('penggajian.kirim');
+});
 
 // Route utama
 Route::get('/', function () {
@@ -80,4 +87,3 @@ Route::get('/perusahaan/destroy/{id}', [PerusahaanController::class, 'destroy'])
 // Route untuk penjualan
 Route::get('/penjualan', [PenjualanController::class, 'index']);
 Route::get('/penjualan/{id}', [PenjualanController::class, 'show']);
-

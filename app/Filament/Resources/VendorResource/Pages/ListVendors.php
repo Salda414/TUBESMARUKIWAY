@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\PegawaiResource\Pages;
+namespace App\Filament\Resources\VendorResource\Pages;
 
-use App\Filament\Resources\PegawaiResource;
+use App\Filament\Resources\VendorResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListPegawais extends ListRecords
+class ListVendors extends ListRecords
 {
-    protected static string $resource = PegawaiResource::class;
+    protected static string $resource = VendorResource::class;
 
     protected function getHeaderActions(): array
     {

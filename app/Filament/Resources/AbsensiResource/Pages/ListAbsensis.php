@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\PegawaiResource\Pages;
+namespace App\Filament\Resources\AbsensiResource\Pages;
 
-use App\Filament\Resources\PegawaiResource;
+use App\Filament\Resources\AbsensiResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListPegawais extends ListRecords
+class ListAbsensis extends ListRecords
 {
-    protected static string $resource = PegawaiResource::class;
+    protected static string $resource = AbsensiResource::class;
 
     protected function getHeaderActions(): array
     {

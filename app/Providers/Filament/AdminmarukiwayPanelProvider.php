@@ -20,6 +20,17 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminmarukiwayPanelProvider extends PanelProvider
 {
+    protected function navigation(): Navigation
+{
+    return Navigation::make()
+        ->items([
+            // ... item navigation lainnya
+            NavigationItem::make('Pembelian Bahan Baku')
+                ->icon('heroicon-o-shopping-cart')
+                ->url(fn (): string => PembelianBahanBakuResource::getUrl())
+                ->isActiveWhen(fn () => request()->routeIs('filament.admin.resources.pembelian-bahan-baku.*')),
+        ]);
+}
     public function panel(Panel $panel): Panel
     {
         return $panel
