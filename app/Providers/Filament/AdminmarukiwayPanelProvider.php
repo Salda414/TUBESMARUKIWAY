@@ -24,8 +24,8 @@ class AdminmarukiwayPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->id('adminmarukiway')
-            ->path('adminmarukiway')
+            ->id('admin')
+            ->path('admin')
             ->login()
             ->colors([
                 'primary' => Color::Amber,

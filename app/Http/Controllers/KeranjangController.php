@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
 use App\Models\Produk; //untuk akses kelas model barang
 use App\Models\Penjualan; //untuk akses kelas model penjualan
-use App\Models\PenjualanProduk; //untuk akses kelas model penjualan
+use App\Models\PenjualanBarang; //untuk akses kelas model penjualan
 use App\Models\Pembayaran; //untuk akses kelas model pembayaran
 use App\Models\Pelanggan; //untuk akses kelas model pelanggan
 use Illuminate\Support\Facades\DB; //untuk menggunakan db
@@ -14,6 +13,7 @@ use Illuminate\Support\Facades\Auth; //agar bisa mengakses session user_id dari 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+use App\Models\Produk; //untuk akses kelas model produk
 
 class KeranjangController extends Controller
 {
@@ -50,7 +50,7 @@ class KeranjangController extends Controller
         // dd(var_dump($produkdibeli));
         // jumlah produk dibeli
         $jmlprodukdibeli = DB::table('penjualan')
-                            ->join('penjualan_produk', 'penjualan.id', '=', 'penjualan_produk.penjualan_id')
+                            ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
                             ->join('pelanggan', 'penjualan.pelanggan_id', '=', 'pelanggan.id')
                             ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
                             ->select(DB::raw('COUNT(DISTINCT produk_id) as total'))
@@ -65,7 +65,7 @@ class KeranjangController extends Controller
                             ->get();
 
         $t = DB::table('penjualan')
-        ->join('penjualan_produk', 'penjualan.id', '=', 'penjualan_produk.penjualan_id')
+        ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
         ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
         ->select(DB::raw('SUM(harga_jual * jumlah) as total'))
         ->where('penjualan.pelanggan_id', '=', $id_pelanggan) 
@@ -124,7 +124,7 @@ class KeranjangController extends Controller
 
                // Cek apakah ada penjualan dengan gross_amount = 0
                 $penjualanExist = DB::table('penjualan')
-                ->join('penjualan_produk', 'penjualan.id', '=', 'penjualan_produk.penjualan_id')
+                ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
                 ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
                 ->where('penjualan.pelanggan_id', $id_pelanggan)
                 ->where(function($query) {
@@ -158,7 +158,7 @@ class KeranjangController extends Controller
                     $penjualan = Penjualan::find($penjualanExist->id);
                 }
 
-                // Tambahkan produk ke penjualan_produk
+                // Tambahkan produk ke penjualan_barang
                 Penjualanproduk::create([
                     'penjualan_id' => $penjualan->id,
                     'produk_id' => $produk_id,
@@ -171,7 +171,7 @@ class KeranjangController extends Controller
                 // Update total tagihan pada tabel penjualan
                 // $penjualan->tagihan = Penjualanproduk::where('penjualan_id', $penjualan->id)->sum('total');
                 $tagihan = DB::table('penjualan')
-                ->join('penjualan_produk', 'penjualan.id', '=', 'penjualan_produk.penjualan_id')
+                ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
                 ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
                 ->select(DB::raw('SUM(harga_jual * jumlah) as total'))
                 ->where('penjualan.pelanggan_id', '=', $id_pelanggan) 
@@ -191,7 +191,7 @@ class KeranjangController extends Controller
 
                 // hitung total produk
                 $jmlprodukdibeli = DB::table('penjualan')
-                            ->join('penjualan_produk', 'penjualan.id', '=', 'penjualan_produk.penjualan_id')
+                            ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
                             ->join('pelanggan', 'penjualan.pelanggan_id', '=', 'pelanggan.id')
                             ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
                             ->select(DB::raw('COUNT(DISTINCT produk_id) as total'))
@@ -235,14 +235,14 @@ class KeranjangController extends Controller
         // dd(var_dump($id_pelanggan));
 
         $produk = DB::table('penjualan')
-                        ->join('penjualan_produk', 'penjualan.id', '=', 'penjualan_produk.penjualan_id')
+                        ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
                         ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
-                        ->join('produk', 'penjualan_produk.produk_id', '=', 'produk.id')
+                        ->join('produk', 'penjualan_barang.produk_id', '=', 'produk.id')
                         ->join('pelanggan', 'penjualan.pelanggan_id', '=', 'pelanggan.id')
-                        ->select('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan', 'penjualan_produk.produk_id', 'produk.nama_produk','penjualan_produk.harga_jual', 
+                        ->select('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan', 'penjualan_barang.produk_id', 'produk.nama_produk','penjualan_barang.harga_jual', 
                                  'produk.gambar','pembayaran.order_id',
-                                  DB::raw('SUM(penjualan_produk.jumlah) as total_produk'),
-                                  DB::raw('SUM(penjualan_produk.harga_jual * penjualan_produk.jumlah) as total_belanja'))
+                                  DB::raw('SUM(penjualan_barang.jumlah) as total_produk'),
+                                  DB::raw('SUM(penjualan_barang.harga_jual * penjualan_barang.jumlah) as total_belanja'))
                         ->where('penjualan.pelanggan_id', '=',$id_pelanggan) 
                         ->where(function($query) {
                             $query->where('pembayaran.gross_amount', 0)
@@ -251,7 +251,7 @@ class KeranjangController extends Controller
                                         ->where('pembayaran.jenis_pembayaran', 'pg');
                                   });
                         })
-                        ->groupBy('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan','penjualan_produk.produk_id', 'produk.nama_produk','penjualan_produk.harga_jual',
+                        ->groupBy('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan','penjualan_barang.produk_id', 'produk.nama_produk','penjualan_barang.harga_jual',
                                   'produk.gambar','pembayaran.order_id',
                                  )
                         ->get();
@@ -380,14 +380,14 @@ class KeranjangController extends Controller
             ->first();
 
             $produk = DB::table('penjualan')
-                        ->join('penjualan_produk', 'penjualan.id', '=', 'penjualan_produk.penjualan_id')
+                        ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
                         ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
-                        ->join('produk', 'penjualan_produk.produk_id', '=', 'produk.id')
+                        ->join('produk', 'penjualan_barang.produk_id', '=', 'produk.id')
                         ->join('pelanggan', 'penjualan.pelanggan_id', '=', 'pelanggan.id')
-                        ->select('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan', 'penjualan_produk.produk_id', 'produk.nama_produk','penjualan_produk.harga_jual', 
+                        ->select('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan', 'penjualan_barang.produk_id', 'produk.nama_produk','penjualan_barang.harga_jual', 
                                  'produk.gambar',
-                                  DB::raw('SUM(penjualan_produk.jumlah) as total_produk'),
-                                  DB::raw('SUM(penjualan_produk.harga_jual * penjualan_produk.jumlah) as total_belanja'))
+                                  DB::raw('SUM(penjualan_barang.jumlah) as total_produk'),
+                                  DB::raw('SUM(penjualan_barang.harga_jual * penjualan_barang.jumlah) as total_belanja'))
                         ->where('penjualan.pelanggan_id', '=',$id_pelanggan) 
                         ->where(function($query) {
                             $query->where('pembayaran.gross_amount', 0)
@@ -396,7 +396,7 @@ class KeranjangController extends Controller
                                         ->where('pembayaran.jenis_pembayaran', 'pg');
                                   });
                         })
-                        ->groupBy('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan','penjualan_produk.produk_id', 'produk.nama_produk','penjualan_produk.harga_jual',
+                        ->groupBy('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan','penjualan_barang.produk_id', 'produk.nama_produk','penjualan_barang.harga_jual',
                                   'produk.gambar',
                                  )
                         ->get();
@@ -418,5 +418,16 @@ class KeranjangController extends Controller
         }
 
         
+    }
+        
+
+        // ambil data produk
+        $produk = Produk::all();
+        // kirim ke halaman view
+        return view('galeri',
+                        [ 
+                            'produk'=>$produk,
+                        ]
+                    ); 
     }
 }
