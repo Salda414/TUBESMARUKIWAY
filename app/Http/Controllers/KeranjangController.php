@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth; //agar bisa mengakses session user_id dari 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-use App\Models\Produk; //untuk akses kelas model produk
+//use App\Models\Produk; //untuk akses kelas model produk
 
 class KeranjangController extends Controller
 {
@@ -422,12 +422,12 @@ class KeranjangController extends Controller
         
 
         // ambil data produk
-        $produk = Produk::all();
+        //$produk = Produk::all();
         // kirim ke halaman view
-        return view('galeri',
-                        [ 
-                            'produk'=>$produk,
-                        ]
-                    ); 
-    }
+        // return view('galeri',
+        //                 [ 
+        //                     'produk'=>$produk,
+        //                 ]
+        //             ); 
+    //}
 }

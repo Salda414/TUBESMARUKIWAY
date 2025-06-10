@@ -8,7 +8,7 @@ use Filament\Resources\Pages\CreateRecord;
 
 // tambahan untuk akses ke penjualabarang
 use App\Models\Penjualan;
-use App\Models\PenjualanProduk;
+use App\Models\PenjualanBarang;
 use App\Models\Pembayaran;
 use Illuminate\Support\Facades\DB;
 

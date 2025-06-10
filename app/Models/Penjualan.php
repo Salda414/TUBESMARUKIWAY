@@ -79,9 +79,9 @@ class Penjualan extends Model
      * Relasi ke item-item barang dalam penjualan (melalui model PenjualanBarang).
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function penjualanProduk()
+    public function penjualanBarang()
     {
-        return $this->hasMany(penjualanProduk::class, 'penjualan_id');
+        return $this->hasMany(PenjualanBarang::class, 'penjualan_id');
     }
 
     /**

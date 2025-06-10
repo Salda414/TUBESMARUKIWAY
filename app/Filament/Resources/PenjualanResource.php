@@ -30,7 +30,7 @@ use Filament\Tables\Filters\SelectFilter;
 use App\Models\Pelanggan;
 use App\Models\Produk;
 use App\Models\Pembayaran;
-use App\Models\PenjualanProduk;
+use App\Models\PenjualanBarang;
 
 // use App\Models\PenjualanBarang; // Tidak terpakai langsung di sini
 use Illuminate\Support\Facades\DB; // Tidak terpakai langsung di sini
@@ -97,7 +97,7 @@ class PenjualanResource extends Resource
                         ->icon('heroicon-m-shopping-bag')
                         ->schema([
                             Repeater::make('items')
-                                ->relationship('PenjualanProduk')
+                                ->relationship('PenjualanBarang')
                                 ->label('Detail Barang')
                                 ->schema([
                                     Select::make('produk_id')
