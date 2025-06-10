@@ -16,5 +16,11 @@ class Coa extends Model
         'nama_akun',
     ];
     protected $table = 'coa';
+
     protected $guarded = [];
+
+    public function journalDetail() //untuk relasi ke model Jurnal_detail
+    {
+        return $this->hasMany(JurnalDetail::class);
+    }
 }

@@ -18,6 +18,12 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
+//
+use Filament\Forms\Components\Select;
+//use Filament\Forms\Components\TextInput;
+//
+use App\Models\Produk;
+
 class PelangganResource extends Resource
 {
     protected static ?string $model = Pelanggan::class;
@@ -34,6 +40,12 @@ class PelangganResource extends Resource
                     TextInput::make('nama_pelanggan')
                         ->required()
                         ->placeholder('Masukkan nama pelanggan')
+                    ,
+                    Select::make('produk_id')
+                        ->label('Produk')
+                        ->options(Produk::all()->pluck('nama_produk', 'id'))
+                        ->searchable()
+                        ->required()
                     ,
                     TextInput::make('nomor_telepon')
                         ->required()
@@ -59,12 +71,15 @@ class PelangganResource extends Resource
             ->columns([
                 //
                 TextColumn::make('nama_pelanggan'),
+                TextColumn::make('produk.nama_produk')->label('Produk'),
                 TextColumn::make('nomor_telepon'),
                 TextColumn::make('email'),
                 TextColumn::make('alamat'), 
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('produk_id')
+                    ->label('Produk')
+                    ->relationship('produk', 'nama_produk'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
