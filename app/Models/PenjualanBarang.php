@@ -22,7 +22,7 @@ class PenjualanBarang extends Model
     // Relasi ke tabel produk
     public function produk()
     {
-        return $this->belongsTo(Produk::class, 'produk_id', 'id_produk');
+        return $this->belongsTo(Produk::class, 'produk_id');
     }
 }
 
