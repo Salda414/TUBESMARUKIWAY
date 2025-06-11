@@ -17,20 +17,24 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Navigation\Navigation;
+use Filament\Navigation\NavigationItem;
+use App\Filament\Resources\PembelianBahanBakuResource;
 
 class AdminmarukiwayPanelProvider extends PanelProvider
 {
     protected function navigation(): Navigation
-{
-    return Navigation::make()
-        ->items([
-            // ... item navigation lainnya
-            NavigationItem::make('Pembelian Bahan Baku')
-                ->icon('heroicon-o-shopping-cart')
-                ->url(fn (): string => PembelianBahanBakuResource::getUrl())
-                ->isActiveWhen(fn () => request()->routeIs('filament.admin.resources.pembelian-bahan-baku.*')),
-        ]);
-}
+    {
+        return Navigation::make()
+            ->items([
+                // ... item navigation lainnya
+                NavigationItem::make('Pembelian Bahan Baku')
+                    ->icon('heroicon-o-shopping-cart')
+                    ->url(fn (): string => PembelianBahanBakuResource::getUrl())
+                    ->isActiveWhen(fn () => request()->routeIs('filament.admin.resources.pembelian-bahan-baku.*')),
+            ]);
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -52,7 +56,9 @@ class AdminmarukiwayPanelProvider extends PanelProvider
                 Widgets\FilamentInfoWidget::class,
                 \App\Filament\Widgets\PenggajianChart::class,
                 \App\Filament\Widgets\AbsensiChart::class,
-                
+                \App\Filament\Widgets\DashboardStatCards::class,
+                \App\Filament\Widgets\TotalPenjualanChart::class,
+                \App\Filament\Widgets\PenjualanPerPelangganChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,

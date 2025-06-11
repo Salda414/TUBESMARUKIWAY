@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('penggajians', function (Blueprint $table) {
-           $table->string('no_penggajian')->unique()->after('id');
+        Schema::create('vendor', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_vendor'); 
+            $table->string('nama_vendor'); 
+            $table->string('alamat'); 
+            $table->string('telepon'); 
+            $table->timestamps();
         });
     }
 
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('penggajians', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('vendor');
     }
 };
