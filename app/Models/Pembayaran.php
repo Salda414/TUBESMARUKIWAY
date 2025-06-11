@@ -22,4 +22,5 @@ protected $casts = [
     'transaction_time' => 'datetime',
     'gross_amount'     => 'float', 
 ];
+
 }
