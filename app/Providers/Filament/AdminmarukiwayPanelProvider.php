@@ -50,6 +50,9 @@ class AdminmarukiwayPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
+                \App\Filament\Widgets\PenggajianChart::class,
+                \App\Filament\Widgets\AbsensiChart::class,
+                
             ])
             ->middleware([
                 EncryptCookies::class,
