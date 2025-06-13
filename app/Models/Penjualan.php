@@ -11,22 +11,16 @@ class Penjualan extends Model
     use HasFactory;
 
     protected $table = 'penjualan';
-
     protected $guarded = [];
 
     public static function getKodeFaktur()
     {
         $sql = "SELECT IFNULL(MAX(no_faktur), 'F-0000000') as no_faktur FROM penjualan";
         $kodefaktur = DB::select($sql);
-        // cacah hasilnya
-        foreach ($kodefaktur as $kdpmbl) {
-            $kd = $kdpmbl->no_faktur;
-        }
-        // Mengambil substring tiga digit akhir dari string PR-000
-        $noawal = substr($kd,-7);
-        $noakhir = $noawal+1; //menambahkan 1, hasilnya adalah integer cth 1
-        $noakhir = 'F-'.str_pad($noakhir,7,"0",STR_PAD_LEFT); //menyambung dengan string P-00001
-        return $noakhir;
+        $kd = $kodefaktur[0]->no_faktur ?? 'F-0000000';
+        $noawal = substr($kd, -7);
+        $noakhir = (int)$noawal + 1;
+        return 'F-' . str_pad($noakhir, 7, "0", STR_PAD_LEFT);
     }
 
     /**
@@ -41,7 +35,7 @@ class Penjualan extends Model
     {
         // Argumen kedua adalah foreign key di tabel 'penjualan'
         // Argumen ketiga adalah owner key (primary key) di tabel 'pelanggan'
-        return $this->belongsTo(Pelanggan::class, 'pelanggan_id', 'id');
+        return $this->belongsTo(Pelanggan::class, 'pelanggan_id', 'id_pelanggan');
     }
 
     /**
@@ -88,7 +82,7 @@ class Penjualan extends Model
      * Relasi ke pembayaran.
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function pembayaran()
+    public function pembayarans()
     {
         return $this->hasMany(Pembayaran::class, 'penjualan_id'); 
     }

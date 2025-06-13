@@ -1,55 +1,61 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\PerusahaanController;
+use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Contoh1Controller;
+use App\Http\Controllers\Contoh2Controller;
+use App\Http\Controllers\CoaController;
+use App\Http\Controllers\PengirimanEmailController;
+use Illuminate\Support\Facades\Auth;
 
-use App\Mail\TransactionSuccessMail;
+// Route khusus admin (dari GitHub)
+Route::prefix('admin')->group(function () {
+    Route::get('/penggajian/kirim/{id}', [PengirimanEmailController::class, 'kirim'])
+        ->name('penggajian.kirim');
+});
 
-use Illuminate\Support\Facades\Mail;
-
+// Route utama
 Route::get('/', function () {
-    // return view('welcome');
-    // diarahkan ke login customer
-    return view('login');
+    return view('login'); // Mengarahkan ke login customer
 });
 
-// untuk simulasi penggunaan route dengan view mengarah ke selamat.blade.php
-// kemudian mengirimkan dua variabel ke view yaitu nama dengan isi Putri Valina dan nim dengan isi 113030044
+// Route untuk halaman contoh
 Route::get('/selamat', function () {
-    return view('selamat',
-                 [
-                    'nama'=>'Putri Valina',
-                    'nim'=>'113030044'
-                 ]
-                );
+    return view('selamat', [
+        'nama' => 'Putri Valina',
+        'nim' => '113030044'
+    ]);
 });
 
-// route ke utama
 Route::get('/utama', function () {
-    return view('layout',
-                 [
-                    'nama'=>'Putri Valina',
-                    'title'=>'Selamat Datang di Matakuliah Web Framework'
-                 ]
-                );
+    return view('layout', [
+        'nama' => 'Putri Valina',
+        'title' => 'Selamat Datang di Matakuliah Web Framework'
+    ]);
 });
 
-// contoh route dengan mengakses method show di class contoh1controller
-Route::get('/contoh1', [App\Http\Controllers\Contoh1Controller::class, 'show']);
-
-Route::get('/contoh2', [App\Http\Controllers\Contoh2Controller::class, 'show']);
-Route::get('/coa', [App\Http\Controllers\CoaController::class, 'index']);
+// Route contoh controller
+Route::get('/contoh1', [Contoh1Controller::class, 'show']);
+Route::get('/contoh2', [Contoh2Controller::class, 'show']);
+Route::get('/coa', [CoaController::class, 'index']);
 
 // login customer
 Route::get('/depan', [App\Http\Controllers\KeranjangController::class, 'daftarproduk'])
-     ->middleware(middleware:\App\Http\Middleware\CustomerMiddleware::class)
+     ->middleware(\App\Http\Middleware\CustomerMiddleware::class)
      ->name('depan');
 Route::get('/login', function () {
     return view('login');
 });
 
-// tambahan route untuk proses login
-use Illuminate\Http\Request;
-Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
+// Login dan logout route
+Route::get('/login', function () {
+    return view('login');
+});
+
+Route::post('/login', [AuthController::class, 'login']); // Proses login
 
 Route::get('/logout', function () {
     Auth::logout();
@@ -58,26 +64,41 @@ Route::get('/logout', function () {
     return redirect('/login');
 })->name('logout');
 
-// untuk ubah password
-Route::get('/ubahpassword', [App\Http\Controllers\AuthController::class, 'ubahpassword'])
+// Route untuk ubah password
+Route::get('/ubahpassword', [AuthController::class, 'ubahpassword'])
     ->middleware(\App\Http\Middleware\CustomerMiddleware::class)
     ->name('ubahpassword');
-Route::post('/prosesubahpassword', [App\Http\Controllers\AuthController::class, 'prosesubahpassword'])
-    ->middleware(\App\Http\Middleware\CustomerMiddleware::class)
-;
-// prosesubahpassword
-// tambah keranjang
-Route::post('/tambah', [App\Http\Controllers\KeranjangController::class, 'tambahKeranjang'])->middleware(\App\Http\Middleware\CustomerMiddleware::class);
-Route::get('/lihatkeranjang', [App\Http\Controllers\KeranjangController::class, 'lihatkeranjang'])->middleware(\App\Http\Middleware\CustomerMiddleware::class);
-Route::delete('/hapus/{barang_id}', [App\Http\Controllers\KeranjangController::class, 'hapus'])->middleware(\App\Http\Middleware\CustomerMiddleware::class);
-Route::get('/lihatriwayat', [App\Http\Controllers\KeranjangController::class, 'lihatriwayat'])->middleware(\App\Http\Middleware\CustomerMiddleware::class);
-// untuk autorefresh
-Route::get('/cek_status_pembayaran_pg', [App\Http\Controllers\KeranjangController::class, 'cek_status_pembayaran_pg']);
+
+Route::post('/prosesubahpassword', [AuthController::class, 'prosesubahpassword'])
+    ->middleware(\App\Http\Middleware\CustomerMiddleware::class);
+
+// Route untuk keranjang
+Route::post('/tambah', [KeranjangController::class, 'tambahKeranjang'])
+    ->middleware(\App\Http\Middleware\CustomerMiddleware::class);
+
+Route::get('/lihatkeranjang', [KeranjangController::class, 'lihatkeranjang'])
+    ->middleware(\App\Http\Middleware\CustomerMiddleware::class);
+
+Route::delete('/hapus/{produk_id}', [KeranjangController::class, 'hapus'])
+    ->middleware(\App\Http\Middleware\CustomerMiddleware::class);
+
+Route::get('/lihatriwayat', [KeranjangController::class, 'lihatriwayat'])
+    ->middleware(\App\Http\Middleware\CustomerMiddleware::class);
+
+// Route untuk cek status pembayaran
+Route::get('/cek_status_pembayaran_pg', [KeranjangController::class, 'cek_status_pembayaran_pg']);
 Route::get('/login', function () {
     return view('login');
 });
 
-// untuk contoh perusahaan
-use App\Http\Controllers\PerusahaanController;
+// contoh sampel midtrans
+use App\Http\Controllers\CobaMidtransController;
+Route::get('/cekmidtrans', [CobaMidtransController::class, 'cekmidtrans']);
+
+// Route untuk perusahaan
 Route::resource('perusahaan', PerusahaanController::class);
-Route::get('/perusahaan/destroy/{id}', [PerusahaanController::class,'destroy']);
+Route::get('/perusahaan/destroy/{id}', [PerusahaanController::class, 'destroy']);
+
+// Route untuk penjualan
+Route::get('/penjualan', [PenjualanController::class, 'index']);
+Route::get('/penjualan/{id}', [PenjualanController::class, 'show']);

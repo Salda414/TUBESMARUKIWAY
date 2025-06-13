@@ -91,6 +91,7 @@ class KeranjangController extends Controller
     // halaman tambah keranjang
     public function tambahKeranjang(Request $request)
     {
+        date_default_timezone_set('Asia/Jakarta');
         try {
             $request->validate([
                 'product_id' => 'required|exists:produk,id',
@@ -108,7 +109,7 @@ class KeranjangController extends Controller
             Log::info('Product ID: ' . $request->product_id);
             Log::info('Quantity: ' . $request->quantity);
             Log::info('Pelanggan ID: ' . $id_pelanggan);
-            Log::info('Penjualan Exist: ' . json_encode($penjualanExist));
+            //Log::info('Penjualan Exist: ' . json_encode($penjualanExist));
 
             // cek di database apakah ada nomor faktur yang masih aktif
             // dilihat dari pembayaran yg masih 0
@@ -118,7 +119,7 @@ class KeranjangController extends Controller
                 if (!$product) {
                     return response()->json(['success' => false, 'message' => 'produk tidak ditemukan!']);
                 }
-                $harga = $product->harga_produk;
+                $harga = $product->harga;
                 $jumlah = (int) $request->quantity;
                 $produk_id = $request->product_id;
 
@@ -157,19 +158,20 @@ class KeranjangController extends Controller
                 }else{
                     $penjualan = Penjualan::find($penjualanExist->id);
                 }
+                Log::info('Penjualan Exist: ' . json_encode($penjualanExist));
 
                 // Tambahkan produk ke penjualan_barang
-                Penjualanproduk::create([
+                PenjualanBarang::create([
                     'penjualan_id' => $penjualan->id,
                     'produk_id' => $produk_id,
                     'harga_beli'=>$harga,
                     'harga_jual'=>$harga*1.2,
                     'jumlah' => $jumlah,
-                    'tgl'=>date('Y-m-d')
+                    'harga'=>$harga,
                 ]);
 
                 // Update total tagihan pada tabel penjualan
-                // $penjualan->tagihan = Penjualanproduk::where('penjualan_id', $penjualan->id)->sum('total');
+                // $penjualan->tagihan = PenjualanBarang::where('penjualan_id', $penjualan->id)->sum('total');
                 $tagihan = DB::table('penjualan')
                 ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
                 ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
@@ -304,8 +306,8 @@ class KeranjangController extends Controller
                     // kita perlu membuat objek dulu kemudian di masukkan ke array
                     $foo = array(
                             'id'=> $i,
-                            'price' => $k->harga_jual,
-                            'quantity' => $k->total_produk,
+                            'price' => (int) $k->harga_jual,
+                            'quantity' => (int) $k->total_produk,
                             'name' => $k->nama_produk,
 
                     );
@@ -419,15 +421,298 @@ class KeranjangController extends Controller
 
         
     }
-        
+    
+    // untuk menghapus
+    public function hapus($produk_id)
+    {
+        date_default_timezone_set('Asia/Jakarta');
+        $id_user = Auth::user()->id;
 
-        // ambil data produk
-        //$produk = Produk::all();
-        // kirim ke halaman view
-        // return view('galeri',
-        //                 [ 
-        //                     'produk'=>$produk,
-        //                 ]
-        //             ); 
-    //}
+        // dapatkan id_$id_pelanggan dari user_id di tabel users sesuai data yang login
+        $pelanggan = Pelanggan::where('user_id', $id_user)
+                        ->select(DB::raw('id'))
+                        ->first();
+        $id_pelanggan = $pelanggan->id;
+
+        
+        $sql = "DELETE FROM penjualan_barang WHERE produk_id = ? AND penjualan_id = (SELECT penjualan.id FROM penjualan join pembayaran on (penjualan.id=pembayaran.penjualan_id) WHERE penjualan.pelanggan_id = ? AND ((pembayaran.gross_amount = 0) or (pembayaran.jenis_pembayaran='pg' and pembayaran.status_code<>'200')))";
+        $deleted = DB::delete($sql, [$produk_id,$id_pelanggan]);
+        
+        $penjualan = DB::table('penjualan')
+            ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
+            ->select('penjualan.id')
+            ->where('penjualan.pelanggan_id', $id_pelanggan)
+            ->where(function($query) {
+                $query->where('pembayaran.gross_amount', 0)
+                      ->orWhere(function($q) {
+                          $q->where('pembayaran.status_code', '!=', 200)
+                            ->where('pembayaran.jenis_pembayaran', 'pg');
+                      });
+            })
+            ->first();
+
+        // Update total tagihan pada tabel penjualan
+        $tagihan = DB::table('penjualan')
+        ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
+        ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
+        ->select(DB::raw('SUM(harga_jual * jml) as total'))
+        ->where('penjualan.pelanggan_id', '=', $id_pelanggan) 
+        ->where(function($query) {
+            $query->where('pembayaran.gross_amount', 0)
+                  ->orWhere(function($q) {
+                      $q->where('pembayaran.status_code', '!=', 200)
+                        ->where('pembayaran.jenis_pembayaran', 'pg');
+                  });
+        })
+        ->first();
+
+        if ($penjualan) {
+            DB::table('penjualan')
+                ->where('id', $penjualan->id)
+                ->update(['tagihan' => $tagihan->total]);
+        }
+
+         
+
+        $jmlbarangdibeli = DB::table('penjualan')
+                            ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
+                            ->join('Pelanggan', 'penjualan.pelanggan_id', '=', 'Pelanggan.id')
+                            ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
+                            ->select(DB::raw('COUNT(DISTINCT produk_id) as total'))
+                            ->where('penjualan.pelanggan_id', '=', $id_pelanggan) 
+                            ->where(function($query) {
+                                $query->where('pembayaran.gross_amount', 0)
+                                      ->orWhere(function($q) {
+                                          $q->where('pembayaran.status_code', '!=', 200)
+                                            ->where('pembayaran.jenis_pembayaran', 'pg');
+                                      });
+                            })
+                            ->get();
+
+
+        return response()->json(['success' => true, 'message' => 'Produk berhasil dihapus', 'total' => $tagihan->total, 'jmlbarangdibeli'=>$jmlbarangdibeli[0]->total ?? 0]);
+    }
+
+    // untuk autorefresh dari server midtrans yang sudah terbayarkan akan diupdatekan ke database
+    // termasuk menangani ketika sudah expired
+    public function cek_status_pembayaran_pg(){
+        date_default_timezone_set('Asia/Jakarta');
+        $pembayaranPending = Pembayaran::where('jenis_pembayaran', 'pg')
+        ->where(DB::raw("IFNULL(status_code, '0')"), '<>', '200')
+        ->orderBy('tgl_bayar', 'desc')
+        ->get();    
+        // var_dump($pembayaranPending);
+        // dd();
+        $id = array();
+        $kode_faktur = array();
+		foreach($pembayaranPending as $ks){
+			array_push($id,$ks->order_id);
+            // echo $ks->order_id;
+            // untuk mendapatkan no_faktur dari pola F-0000002-20250406 => F-0000002
+            $parts = explode('-', $ks->order_id);
+            $substring = $parts[0] . '-' . $parts[1];
+
+            array_push($kode_faktur,$substring);
+            // echo $substring;
+		}
+
+        for($i=0; $i<count($id); $i++){
+            // echo "masuk sini";
+            $ch = curl_init(); 
+            $login = env('MIDTRANS_SERVER_KEY');
+            $password = '';
+            $orderid = $id[$i];
+            // echo $orderid;
+            $kode_faktur = $kode_faktur[$i];
+            $URL =  'https://api.sandbox.midtrans.com/v2/'.$orderid.'/status';
+            curl_setopt($ch, CURLOPT_URL, $URL);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            curl_setopt($ch, CURLOPT_USERPWD, "$login:$password");  
+            $output = curl_exec($ch); 
+            curl_close($ch);    
+            $outputjson = json_decode($output, true); //parsing json dalam bentuk assosiative array
+            // var_dump($outputjson);
+            // dd();
+
+            // lakukan penanganan jika sudah expired
+            if($outputjson['status_code']!=404){
+                //diluar 404
+                if(in_array($outputjson['transaction_status'], ['expire', 'cancel', 'deny'])){
+                    // maka kembalikan posisi ke pemesanan 
+                    // hapus snap token dari transaction_id
+                    $affected = DB::update(
+                        'update pembayaran 
+                         set status_code = null,
+                             transaction_time = null,
+                             gross_amount = 0,
+                             transaction_id = null
+                         where order_id = ?',
+                        [
+                            $orderid
+                        ]
+                    );
+    
+                }else{
+                    // 
+                    $affected = DB::update(
+                        'update pembayaran 
+                         set status_code = ?,
+                             transaction_time = ?,
+                             settlement_time = ?,
+                             status_message = ?,
+                             merchant_id = ?
+                         where order_id = ?',
+                        [
+                            $outputjson['status_code'] ?? null, 
+                            $outputjson['transaction_time'] ?? null, 
+                            $outputjson['settlement_time'] ?? null, 
+                            $outputjson['status_message'] ?? null, 
+                            $outputjson['merchant_id'] ?? null, 
+                            $orderid
+                        ]
+                    );
+        
+                    if($outputjson['status_code']=='200'){
+                        $affected = DB::update(
+                            'update penjualan 
+                             set status = "bayar"
+                             where no_faktur = ?',
+                            [
+                                $kode_faktur
+                            ]
+                        );
+                    }
+                    // 
+                }
+                // akhir
+            }
+
+            // jika tidak ditemukan
+            if($outputjson['status_code']==404){
+                // cek apakah ada datanya di pembayaran, jika ada maka hapus
+                $dataorderid = Pembayaran::where('order_id',$orderid)
+                ->select(DB::raw('order_id'))
+                ->first();
+                if(isset($dataorderid->order_id)){
+                    // jika ditemukan maka kembalikan ke awal
+                    $affected = DB::update(
+                        'update pembayaran 
+                         set status_code = null,
+                             transaction_time = null,
+                             gross_amount = 0,
+                             transaction_id = null,
+                             order_id = null
+                         where order_id = ?',
+                        [
+                            $orderid
+                        ]
+                    );
+                }
+            }
+            
+            
+        }
+        return view('autorefresh');
+    }
+
+    // melihat riwayat pesanan
+    public function lihatriwayat(){
+        date_default_timezone_set('Asia/Jakarta');
+        $id_user = Auth::user()->id;
+
+        // dapatkan id_$id_pelanggan dari user_id di tabel users sesuai data yang login
+        $pelanggan = Pelanggan::where('user_id', $id_user)
+                        ->select(DB::raw('id'))
+                        ->first();
+        $id_pelanggan = $pelanggan->id;
+
+        // dd(var_dump($produkdibeli));
+        // jumlah barang dibeli
+        $jmlbarangdibeli = DB::table('penjualan')
+                            ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
+                            ->join('pelanggan', 'penjualan.pelanggan_id', '=', 'pelanggan.id')
+                            ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
+                            ->select(DB::raw('COUNT(DISTINCT produk_id) as total'))
+                            ->where('penjualan.pelanggan_id', '=', $id_pelanggan) 
+                            ->where(function($query) {
+                                $query->where('pembayaran.gross_amount', 0)
+                                      ->orWhere(function($q) {
+                                          $q->where('pembayaran.status_code', '!=', 200)
+                                            ->where('pembayaran.jenis_pembayaran', 'pg');
+                                      });
+                            })
+                            ->get();
+
+        $t = DB::table('penjualan')
+        ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
+        ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
+        ->select(DB::raw('SUM(harga_jual * jml) as total'))
+        ->where('penjualan.pelanggan_id', '=', $id_pelanggan) 
+        ->where(function($query) {
+            $query->where('pembayaran.gross_amount', 0)
+                  ->orWhere(function($q) {
+                      $q->where('pembayaran.status_code', '!=', 200)
+                        ->where('pembayaran.jenis_pembayaran', 'pg');
+                  });
+        })
+        ->first();
+
+        $produk = DB::table('penjualan')
+                        ->join('penjualan_barang', 'penjualan.id', '=', 'penjualan_barang.penjualan_id')
+                        ->join('pembayaran', 'penjualan.id', '=', 'pembayaran.penjualan_id')
+                        ->join('produk', 'penjualan_barang.produk_id', '=', 'produk.id')
+                        ->join('pelanggan', 'penjualan.pelanggan_id', '=', 'Pelanggan.id')
+                        ->select('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan', 'penjualan_barang.produk_id', 'produk.nama_produk','penjualan_barang.harga_jual', 
+                                 'produk.foto',
+                                  DB::raw('SUM(penjualan_barang.jml) as total_barang'),
+                                  DB::raw('SUM(penjualan_barang.harga_jual * penjualan_barang.jml) as total_belanja'))
+                        ->where('penjualan.pelanggan_id', '=',$id_pelanggan) 
+                        ->where(function($query) {
+                            $query->where('pembayaran.gross_amount', 0)
+                                  ->orWhere(function($q) {
+                                      $q->where('pembayaran.status_code', '!=', 200)
+                                        ->where('pembayaran.jenis_pembayaran', 'pg');
+                                  });
+                        })
+                        ->groupBy('penjualan.id','penjualan.no_faktur','pelanggan.nama_pelanggan','penjualan_barang.produk_id', 'produk.nama_produk','penjualan_barang.harga_jual',
+                                  'produk.gambar',
+                                 )
+                        ->get();
+
+        // hitung jumlah total tagihan
+        $ttl = 0; $jml_brg = 0; $kode_faktur = '';
+        foreach($produk as $p){
+            $ttl += $p->total_belanja;
+            $jml_brg += 1;
+            $kode_faktur = $p->no_faktur;
+            $idpenjualan = $p->id;
+        }
+        
+        // DATA RIWAYAT PEMESANAN
+        $transaksi = DB::select("
+                              SELECT * FROM penjualan
+                              WHERE pelanggan_id = ?
+                    ", [$id_pelanggan]);
+
+        // Ambil semua id penjualan
+        $penjualan_ids = array_column($transaksi, 'id');
+
+        // Ambil detail barang sekaligus
+        $detail_barang = DB::table('penjualan_barang')
+            ->join('produk', 'penjualan_barang.produk_id', '=', 'produk.id')
+            ->whereIn('penjualan_id', $penjualan_ids)
+            ->get()
+            ->groupBy('penjualan_id'); // dikelompokkan per faktur            
+       
+        return view('riwayat',
+                        [ 
+                            'transaksi' => $transaksi,
+                            'detail_barang' => $detail_barang ,
+                            'total_tagihan' => $ttl,
+                            'total_belanja' => $t->total ?? 0,
+                            'jmlbarangdibeli' => $jmlbarangdibeli[0]->total ?? 0
+                        ]
+                    ); 
+    }
 }

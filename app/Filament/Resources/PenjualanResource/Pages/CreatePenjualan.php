@@ -38,30 +38,29 @@ class CreatePenjualan extends CreateRecord
                 ->modalDescription('Apakah Anda yakin ingin menyimpan pembayaran ini?')
                 ->modalButton('Ya, Bayar'),
         ];
-    }
+}
+// penanganan
+protected function simpanPembayaran()
+{
+    // $penjualan = $this->record; // Ambil data penjualan yang sedang dibuat
+    $penjualan = $this->record ?? Penjualan::latest()->first(); // Ambil penjualan terbaru jika null
+    // Simpan ke tabel pembayaran2
+    Pembayaran::create([
+        'penjualan_id' => $penjualan->id,
+        'tgl_bayar'    => now(),
+        'jenis_pembayaran' => 'tunai',
+        'transaction_time' => now(),
+        'gross_amount'       => $penjualan->tagihan, // Sesuaikan dengan field di tabel pembayaran
+        'order_id' => $penjualan->no_faktur,
+    ]);
 
-    // penanganan
-    protected function simpanPembayaran()
-    {
-        // $penjualan = $this->record; // Ambil data penjualan yang sedang dibuat
-        $penjualan = $this->record ?? Penjualan::latest()->first(); // Ambil penjualan terbaru jika null
-        // Simpan ke tabel pembayaran2
-        Pembayaran::create([
-            'penjualan_id' => $penjualan->id,
-            'tgl_bayar'    => now(),
-            'jenis_pembayaran' => 'tunai',
-            'transaction_time' => now(),
-            'gross_amount'       => $penjualan->tagihan, // Sesuaikan dengan field di tabel pembayaran
-            'order_id' => $penjualan->no_faktur,
-        ]);
+    // Update status penjualan jadi "dibayar"
+    $penjualan->update(['status' => 'bayar']);
 
-        // Update status penjualan jadi "dibayar"
-        $penjualan->update(['status' => 'bayar']);
-
-        // Notifikasi sukses
-        Notification::make()
-            ->title('Pembayaran Berhasil!')
-            ->success()
-            ->send();
-    }
+    // Notifikasi sukses
+    Notification::make()
+        ->title('Pembayaran Berhasil!')
+        ->success()
+        ->send();
+}
 }

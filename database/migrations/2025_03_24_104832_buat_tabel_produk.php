@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void {
         Schema::create('produk', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id_produk');  // id_produk sebagai primary key
             $table->string('nama_produk'); 
             $table->text('deskripsi')->nullable(); 
             $table->string('gambar'); // Path gambar

@@ -87,7 +87,7 @@
       <div class="order-md-last">
         <h4 class="d-flex justify-content-between align-items-center mb-3">
           <span class="text-primary">Jumlah Barang</span>
-          <span id="cart-count" class="badge bg-primary rounded-pill">{{$jumlahlbarangdibeli ?? 0}}</span>
+          <span id="cart-count" class="badge bg-primary rounded-pill">{{$jmlprodukdibeli ?? 0}}</span>
         </h4>
 
         <ul class="list-group mb-3">
@@ -311,77 +311,70 @@
     });
 
     // fungsi untuk menangani request
-    function addToCart(productId) {
-      //let quantity = document.getElementById('quantity-' + productId).value;
-      let quantityInput = document.getElementById("quantity-" + productId);
-      let quantity = parseInt(quantityInput.value) || 1;
-      // let quantity = quantityInput.value;
-      // console.log(quantity);
-      // console.log(productId);
-      // Data yang dikirim ke controller 
-      let formData = new FormData();
-      formData.append('product_id', productId);
-      formData.append('quantity', quantity);
+function addToCart(productId) {
+    let quantityInput = document.getElementById("quantity-" + productId);
+    let quantity = parseInt(quantityInput.value) || 1;
 
-      // Kirim data ke Laravel melalui fetch ke method tambah
-      fetch('/tambah', {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Ambil CSRF Token
-          },
-          body: formData
-        })
-        .then(response => response.json()) // Ubah respons menjadi JSON
-        // .then(response => {
-        //         console.log(response.text());
-        //         return response.text(); // Cek apakah ini JSON yang valid
-        //       }
-        // ) // Ubah respons menjadi JSON
-        // .then(response => response.text()) // Ubah respons menjadi JSON
-        // .then(text => {
-        // console.log("RESPONSE:", text); // Lihat isi HTML error
-        //     try {
-        //         const data = JSON.parse(text);
-        //         console.log(data);
-        //     } catch (err) {
-        //         console.error("Gagal parsing JSON:", err);
-        //     }
-        // })
-         .then(data => {
-            if (data.success) {
-                // alert("Produk berhasil ditambahkan ke keranjang!");
-                // Sweet Alert
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'Produk berhasil ditambahkan ke keranjang!',
-                    showConfirmButton: false,
-                    timer: 2000 // Popup otomatis hilang setelah 2 detik
-                });
-                // let vtotal = new Intl.NumberFormat("en-IN").format(data.total);
-                let formatter = new Intl.NumberFormat('id-ID', {
-                              style: 'currency',
-                              currency: 'IDR',
-                              minimumFractionDigits: 0
-                            });
-                let vtotal = formatter.format(data.total);
-                document.getElementById('cart-total').textContent = "Total: " +vtotal;
-                document.getElementById('total_belanja').textContent = vtotal;
-                // jmlbarangdibeli
-                document.getElementById('cart-count').textContent = data.jmlbarangdibeli;
-            //     // console.log(response.json());
-            } else {
-                alert("Gagal menambahkan produk ke keranjang.");
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Oops...',
-                  text: 'Gagal menambahkan produk ke keranjang!'
-                });
-                // alert(response.text());
-            }
-        })
-        // .catch(error => console.error('Error:', error));
-    }
+    // Data yang dikirim ke controller 
+    let formData = new FormData();
+    formData.append('product_id', productId);
+    formData.append('quantity', quantity);
+
+    // Tampilkan loading
+    Swal.fire({
+        title: 'Memproses...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // Kirim data ke Laravel
+    fetch('/tambah', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: data.message,
+                showConfirmButton: false,
+                timer: 2000
+            });
+
+            // Update tampilan keranjang
+            let formatter = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            });
+            let vtotal = formatter.format(data.total);
+            document.getElementById('cart-total').textContent = "Total: " + vtotal;
+            document.getElementById('total_belanja').textContent = vtotal;
+            document.getElementById('cart-count').textContent = data.jmlbarangdibeli;
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.message || 'Gagal menambahkan produk ke keranjang!'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Terjadi Kesalahan',
+            text: 'Terjadi kesalahan saat menambahkan produk ke keranjang'
+        });
+    });
+}
 
  </script>
   <!-- Akhir  Tambahan Javascript untuk Handler Penambahan dan Pengurangan Jumlah Produk-->
