@@ -42,6 +42,14 @@ Route::get('/contoh1', [Contoh1Controller::class, 'show']);
 Route::get('/contoh2', [Contoh2Controller::class, 'show']);
 Route::get('/coa', [CoaController::class, 'index']);
 
+// login customer
+Route::get('/depan', [App\Http\Controllers\KeranjangController::class, 'daftarproduk'])
+     ->middleware(\App\Http\Middleware\CustomerMiddleware::class)
+     ->name('depan');
+Route::get('/login', function () {
+    return view('login');
+});
+
 // Login dan logout route
 Route::get('/login', function () {
     return view('login');
@@ -71,7 +79,7 @@ Route::post('/tambah', [KeranjangController::class, 'tambahKeranjang'])
 Route::get('/lihatkeranjang', [KeranjangController::class, 'lihatkeranjang'])
     ->middleware(\App\Http\Middleware\CustomerMiddleware::class);
 
-Route::delete('/hapus/{barang_id}', [KeranjangController::class, 'hapus'])
+Route::delete('/hapus/{produk_id}', [KeranjangController::class, 'hapus'])
     ->middleware(\App\Http\Middleware\CustomerMiddleware::class);
 
 Route::get('/lihatriwayat', [KeranjangController::class, 'lihatriwayat'])
@@ -79,6 +87,13 @@ Route::get('/lihatriwayat', [KeranjangController::class, 'lihatriwayat'])
 
 // Route untuk cek status pembayaran
 Route::get('/cek_status_pembayaran_pg', [KeranjangController::class, 'cek_status_pembayaran_pg']);
+Route::get('/login', function () {
+    return view('login');
+});
+
+// contoh sampel midtrans
+use App\Http\Controllers\CobaMidtransController;
+Route::get('/cekmidtrans', [CobaMidtransController::class, 'cekmidtrans']);
 
 // Route untuk perusahaan
 Route::resource('perusahaan', PerusahaanController::class);

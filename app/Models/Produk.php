@@ -22,5 +22,9 @@ class Produk extends Model {
     return $this->hasMany(Pelanggan::class, 'produk_id');
 }
 
+    // Relasi dengan tabel relasi many to many nya
+    public function penjualanProduk()
+    {
+        return $this->hasMany(PenjualanProduk::class, 'id');
+    }
 }
-

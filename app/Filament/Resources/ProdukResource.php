@@ -49,7 +49,16 @@ class ProdukResource extends Resource
                 TextInput::make('harga')
                     ->label('Harga')
                     ->numeric()
-                    ->required(),
+                    ->required()
+                    ->minValue(0) // Nilai minimal 0 (opsional jika tidak ingin ada harga negatif)
+                ->reactive() // Menjadikan input reaktif terhadap perubahan
+                ->extraAttributes(['id' => 'harga']) // Tambahkan ID untuk pengikatan JavaScript
+                ->placeholder('Masukkan harga barang') // Placeholder untuk membantu pengguna
+                ->live()
+                ->afterStateUpdated(fn ($state, callable $set) => 
+                    $set('harga_barang', number_format((int) str_replace('.', '', $state), 0, ',', '.'))
+                  )
+                ,
 
                 TextInput::make('stok')
                     ->label('Stok')
@@ -72,7 +81,11 @@ class ProdukResource extends Resource
             ->columns([
                 TextColumn::make('nama_produk')->label('Nama Produk'),
                 TextColumn::make('kategori.jenis_kategori')->label('Kategori'),
-                TextColumn::make('harga')->label('Harga')->money('IDR'),
+                TextColumn::make('harga')
+                ->label('Harga')
+                ->formatStateUsing(fn (string|int|null $state): string => rupiah($state))
+                    ->extraAttributes(['class' => 'text-right']) // Tambahkan kelas CSS untuk rata kanan
+                    ->sortable(),
                 TextColumn::make('stok')->label('Stok'),
                 TextColumn::make('status')->label('Status'),
                 ImageColumn::make('gambar')

@@ -24,6 +24,9 @@ use Filament\Forms\Components\Select;
 //
 use App\Models\Produk;
 
+// untuk model ke user
+use App\Models\User;
+
 class PelangganResource extends Resource
 {
     protected static ?string $model = Pelanggan::class;
@@ -35,18 +38,34 @@ class PelangganResource extends Resource
         return $form
             ->schema([
                 //
+                //direlasikan ke tabel user
+                Select::make('user_id')
+                    ->label('User Id')
+                    ->relationship('user', 'email')
+                    ->searchable() // Menambahkan fitur pencarian
+                    ->preload() // Memuat opsi lebih awal untuk pengalaman yang lebih cepat
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if ($state) {
+                            $user = User::find($state);
+                            $set('nama_pelanggan', $user->name);
+                        }
+                    })
+                , 
+                TextInput::make('kode_pelanggan')
+                    ->default(fn () => Pelanggan::getKodePembeli()) // Ambil default dari method getKodePembeli
+                    ->label('Kode Pelanggan')
+                    ->required()
+                    ->readonly() // Membuat field menjadi read-only
+                ,
                 Grid::make(1) // Membuat hanya 1 kolom
                 ->schema([
                     TextInput::make('nama_pelanggan')
                         ->required()
                         ->placeholder('Masukkan nama pelanggan')
                     ,
-                    Select::make('produk_id')
-                        ->label('Produk')
-                        ->options(Produk::all()->pluck('nama_produk', 'id'))
-                        ->searchable()
-                        ->required()
-                    ,
+
                     TextInput::make('nomor_telepon')
                         ->required()
                         ->placeholder('Masukkan nomor telepon')
@@ -70,16 +89,11 @@ class PelangganResource extends Resource
         return $table
             ->columns([
                 //
+                TextColumn::make('kode_pelanggan'),
                 TextColumn::make('nama_pelanggan'),
-                TextColumn::make('produk.nama_produk')->label('Produk'),
                 TextColumn::make('nomor_telepon'),
                 TextColumn::make('email'),
                 TextColumn::make('alamat'), 
-            ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('produk_id')
-                    ->label('Produk')
-                    ->relationship('produk', 'nama_produk'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
