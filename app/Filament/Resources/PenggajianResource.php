@@ -21,7 +21,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 
 use Barryvdh\DomPDF\Facade\Pdf;
-Use Illumnate\Support\Facades\Storage;
+use Illumnate\Support\Facades\Storage;
 
 class PenggajianResource extends Resource
 {

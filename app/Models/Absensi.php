@@ -18,9 +18,9 @@ class Absensi extends Model
         
     ];
     // Definisikan konstanta untuk status absensi
-    const STATUS_HADIR = 'hadir';  // Gantilah dengan nilai status sesuai enum yang Anda gunakan
+    const STATUS_HADIR = 'hadir';  
 
-    // Enum untuk status absensi jika menggunakan Laravel 8.x atau lebih
+    
     protected $casts = [
         'status' => 'string',
     ];
