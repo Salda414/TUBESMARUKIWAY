@@ -13,6 +13,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 
+use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Columns\ImageColumn;
+
 class ProdukResource extends Resource
 {
     protected static ?string $model = Produk::class;
@@ -36,11 +39,26 @@ class ProdukResource extends Resource
                 Textarea::make('deskripsi')
                     ->label('Deskripsi')
                     ->nullable(),
+                
+                FileUpload::make('gambar')
+                    ->label('Gambar')
+                    ->image()
+                    ->directory('images')
+                    ->required(),
 
                 TextInput::make('harga')
                     ->label('Harga')
                     ->numeric()
-                    ->required(),
+                    ->required()
+                    ->minValue(0) // Nilai minimal 0 (opsional jika tidak ingin ada harga negatif)
+                ->reactive() // Menjadikan input reaktif terhadap perubahan
+                ->extraAttributes(['id' => 'harga']) // Tambahkan ID untuk pengikatan JavaScript
+                ->placeholder('Masukkan harga barang') // Placeholder untuk membantu pengguna
+                ->live()
+                ->afterStateUpdated(fn ($state, callable $set) => 
+                    $set('harga_barang', number_format((int) str_replace('.', '', $state), 0, ',', '.'))
+                  )
+                ,
 
                 TextInput::make('stok')
                     ->label('Stok')
@@ -63,9 +81,16 @@ class ProdukResource extends Resource
             ->columns([
                 TextColumn::make('nama_produk')->label('Nama Produk'),
                 TextColumn::make('kategori.jenis_kategori')->label('Kategori'),
-                TextColumn::make('harga')->label('Harga')->money('IDR'),
+                TextColumn::make('harga')
+                ->label('Harga')
+                ->formatStateUsing(fn (string|int|null $state): string => rupiah($state))
+                    ->extraAttributes(['class' => 'text-right']) // Tambahkan kelas CSS untuk rata kanan
+                    ->sortable(),
                 TextColumn::make('stok')->label('Stok'),
                 TextColumn::make('status')->label('Status'),
+                ImageColumn::make('gambar')
+                    ->label('Gambar')
+                    ->size(50)            // ukuran thumbnail
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('kategori_id')

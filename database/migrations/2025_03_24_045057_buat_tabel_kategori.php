@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('kategori', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');  // id sebagai primary key
             $table->string('jenis_kategori')->unique(); // Nama kategori harus unik
             $table->text('deskripsi')->nullable(); // Deskripsi kategori (opsional)
             $table->enum('status', ['Tersedia', 'Tidak Tersedia'])->default('Tersedia'); // Status kategori

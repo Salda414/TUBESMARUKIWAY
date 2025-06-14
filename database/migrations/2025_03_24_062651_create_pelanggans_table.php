@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pelanggan', function (Blueprint $table) {
-            $table->id('id_pelanggan');
+            $table->id('id');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete(); //jika parent di hapus, maka anak akan ikut terhapus
+            $table->string('kode_pelanggan');
             $table->string('nama_pelanggan');
             $table->string('nomor_telepon')->unique();
             $table->string('email')->unique();
